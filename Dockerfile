@@ -13,22 +13,23 @@ RUN npm install
 COPY prisma ./prisma/
 RUN npx prisma generate
 
-# Kaynak kodları kopyala ve build al
+# Kaynak kodları kopyala
 COPY . .
-RUN npm run build
 
-# 2. Aşama: Çalıştırma ortamı (Production)
+# (Eğer derleme gerekmiyorsa bu satırı SİL veya yorum satırı yap)
+# RUN npm run build
+
+# 2. Aşama: Çalıştırma ortamı
 FROM node:18-alpine AS runner
 WORKDIR /app
-
 ENV NODE_ENV production
 
-# Sadece gerekli dosyaları kopyala
 COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/prisma ./prisma
+# Derleme yoksa tüm klasörü kopyala
+COPY --from=builder /app ./ 
 
-# Uygulamayı başlat
 EXPOSE 5000
-CMD ["node", "dist/index.js"]
+# Direkt index.js'i çalıştır
+CMD ["node", "index.js"]
